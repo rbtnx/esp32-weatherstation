@@ -1,7 +1,35 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
+#include <Servo.h>
 #include "credentials.h"
+
+#define SERVO1_PIN 26
+#define SERVO2_PIN 13
+
+struct positionMap {
+  const char* label;
+  unsigned int angle;
+};
+
+// Adjust depending on your servo and print
+const positionMap servoPos[] = {
+  { "Clear", 0 },
+  { "Clouds", 36 },
+  { "Rain", 72 },
+  { "Thunderstorm", 108 },
+  { "Snow", 144 },
+  { "Mist", 180 },
+  { "Now", 0 },
+  { "3hr", 36 },
+  { "6hr", 72 },
+  { "12hr", 108 },
+  { "24hr", 144 },
+  { "48hr", 180 }
+};
+
+Servo servoMotor1;
+Servo servoMotor2;
 
 String httpGETRequest(const char* url);
 String weatherLookup(unsigned int id);
@@ -19,6 +47,9 @@ unsigned long timerDelay = 10000;
 String jsonBuffer;
 
 void setup() {
+  servoMotor1.attach(SERVO1_PIN);
+  servoMotor2.attach(SERVO2_PIN);
+
   Serial.begin(115200);
   WiFi.begin(ssid,password);
   Serial.print("Connecting...");
@@ -116,3 +147,5 @@ String weatherLookup(unsigned int id) {
     return "Mist";
   }
 }
+
+int 
