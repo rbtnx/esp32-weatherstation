@@ -1,0 +1,4 @@
+.pio
+.vscode
+.env
+include/credentials.h
