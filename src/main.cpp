@@ -1,38 +1,21 @@
+/* 
+ * Author: Kathrin Weihe, 2022
+ */
+ 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Arduino_JSON.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
+#include <wstation.h>
 #include "credentials.h"
 
 #define SERVO1_PIN 26
 #define SERVO2_PIN 13
 
-struct positionMap {
-  const char* label;
-  unsigned int angle;
-};
-
-// Adjust depending on your servo and print
-const positionMap servoPos[] = {
-  { "Clear", 0 },
-  { "Clouds", 36 },
-  { "Rain", 72 },
-  { "Thunderstorm", 108 },
-  { "Snow", 144 },
-  { "Mist", 180 },
-  { "Now", 0 },
-  { "3hr", 36 },
-  { "6hr", 72 },
-  { "12hr", 108 },
-  { "24hr", 144 },
-  { "48hr", 180 }
-};
+String httpGETRequest(const char* url);
 
 Servo servoMotor1;
 Servo servoMotor2;
-
-String httpGETRequest(const char* url);
-String weatherLookup(unsigned int id);
 
 const char* ssid = SSID;
 const char* password = PASS;
@@ -68,6 +51,7 @@ void setup() {
 
 void loop() {
   unsigned int weatherID;
+  unsigned int servo1Angle;
 
   if((millis() - lastChecked) > timerDelay) {
     if(WiFi.status() == WL_CONNECTED) {
@@ -86,16 +70,18 @@ void loop() {
       Serial.print("Temperature : ");
       Serial.println(jsonAnswer["main"]["temp"]);
       weatherID = int(jsonAnswer["weather"][0]["id"]);
+      servo1Angle = weatherLookup(weatherID);
       Serial.print("Weather id: ");
       Serial.print(weatherID);
-      Serial.print(" = ");
-      Serial.println(weatherLookup(weatherID));
+      Serial.print(" Angle: ");
+      Serial.print(servo1Angle);
     }
     else {
       Serial.println("Wifi disconnected!");
     }
     lastChecked = millis();
   }
+  servoMotor1.write(servo1Angle);
 }
 
 String httpGETRequest(const char* url) {
@@ -120,32 +106,3 @@ String httpGETRequest(const char* url) {
   
   return payload;
 }
-
-String weatherLookup(unsigned int id) {
-  if(id >= 800 && id <= 802) {
-    return "Clear";
-  }
-  if(id >= 803 && id <= 804) {
-    return "Clouds";
-  }
-  if(id >= 701 && id <= 799) {
-    return "Mist";
-  }
-  if(id >= 600 && id <= 622) {
-    return "Snow";
-  }
-  if(id >= 500 && id <= 531) {
-    return "Rain";
-  }
-  if(id >= 300 && id <= 321) {
-    return "Rain";
-  }
-  if(id >= 200 && id <= 232) {
-    return "Thunderstorm";
-  }
-  else {
-    return "Mist";
-  }
-}
-
-int 
